@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Repository File Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #e6edf3;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .logo i {
+            color: #58a6ff;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #161b22;
+            border-radius: 6px;
+            padding: 8px 12px;
+            border: 1px solid #30363d;
+            width: 300px;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: #e6edf3;
+            width: 100%;
+            padding: 5px;
+            outline: none;
+        }
+
+        .search-box i {
+            color: #7d8590;
+            margin-right: 8px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #7d8590;
+        }
+
+        .breadcrumb a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .file-explorer {
+            background: #161b22;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            overflow: hidden;
+        }
+
+        .explorer-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 120px 150px;
+            padding: 12px 16px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            font-weight: 600;
+            color: #7d8590;
+        }
+
+        .explorer-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .folder, .file {
+            display: grid;
+            grid-template-columns: 40px 1fr 120px 150px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #21262d;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .folder:hover, .file:hover {
+            background-color: #1c2128;
+        }
+
+        .folder i, .file i {
+            width: 20px;
+        }
+
+        .folder i {
+            color: #58a6ff;
+        }
+
+        .file i {
+            color: #7d8590;
+        }
+
+        .folder-name, .file-name {
+            color: #e6edf3;
+        }
+
+        .file-size {
+            color: #7d8590;
+            font-size: 14px;
+        }
+
+        .file-date {
+            color: #7d8590;
+            font-size: 14px;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #7d8590;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #30363d;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.2s;
+        }
+
+        .back-button:hover {
+            background: #30363d;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #58a6ff;
+        }
+
+        .loading i {
+            font-size: 24px;
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            padding: 20px;
+            background: #f85149;
+            color: white;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .config-panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .config-panel h3 {
+            margin-bottom: 15px;
+            color: #58a6ff;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #c9d1d9;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            color: #e6edf3;
+        }
+
+        .btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #2ea043;
+        }
+
+        /* Scrollbar styling */
+        .explorer-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .explorer-content::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+
+        .explorer-content::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+
+        .explorer-content::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+
+        @media (max-width: 768px) {
+            .explorer-header, .folder, .file {
+                grid-template-columns: 30px 1fr 80px;
+            }
+            
+            .file-size {
+                display: none;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fab fa-github"></i>
+                <span>GitHub File Viewer</span>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search files...">
+            </div>
+        </header>
+
+        <div class="config-panel">
+            <h3>Repository Configuration</h3>
+            <div class="input-group">
+                <label for="repo-owner">Repository Owner</label>
+                <input type="text" id="repo-owner" placeholder="e.g., octocat">
+            </div>
+            <div class="input-group">
+                <label for="repo-name">Repository Name</label>
+                <input type="text" id="repo-name" placeholder="e.g., Hello-World">
+            </div>
+            <div class="input-group">
+                <label for="repo-path">Path (optional)</label>
+                <input type="text" id="repo-path" placeholder="e.g., data" value="data">
+            </div>
+            <button class="btn" id="load-repo">Load Repository</button>
+        </div>
+
+        <div class="breadcrumb">
+            <a href="#" id="repo-link">Repository</a>
+            <span>/</span>
+            <span id="current-path">data</span>
+        </div>
+
+        <button class="back-button" id="back-button" style="display: none;">
+            <i class="fas fa-arrow-left"></i>
+            Back
+        </button>
+
+        <div class="file-explorer">
+            <div class="explorer-header">
+                <div></div>
+                <div>Name</div>
+                <div>Size</div>
+                <div>Date</div>
+            </div>
+            <div class="explorer-content" id="explorer-content">
+                <div class="empty-state">
+                    <i class="fas fa-code-branch"></i>
+                    <p>Configure repository details and click "Load Repository"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const explorerContent = document.getElementById('explorer-content');
+        const currentPath = document.getElementById('current-path');
+        const backButton = document.getElementById('back-button');
+        const searchInput = document.getElementById('search-input');
+        const repoOwnerInput = document.getElementById('repo-owner');
+        const repoNameInput = document.getElementById('repo-name');
+        const repoPathInput = document.getElementById('repo-path');
+        const loadRepoButton = document.getElementById('load-repo');
+        const repoLink = document.getElementById('repo-link');
+
+        // State
+        let currentRepo = {
+            owner: '',
+            name: '',
+            path: 'data'
+        };
+        let navigationHistory = [];
+
+        // Function to convert Unix timestamp to readable time
+        function convertTimestamp(filename) {
+            // Extract timestamp from filename (k-{timestamp})
+            const match = filename.match(/k-(\d+)/);
+            if (!match) return 'Invalid filename';
+            
+            const unixTime = parseInt(match[1]);
+            const date = new Date(unixTime * 1000);
+            
+            // Format as: YYYY-MM-DD HH:MM:SS
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const seconds = date.getSeconds().toString().padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        // Function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Function to fetch repository contents from GitHub API
+        async function fetchRepoContents(path = '') {
+            const { owner, name } = currentRepo;
+            if (!owner || !name) {
+                throw new Error('Repository owner and name are required');
+            }
+
+            const apiUrl = `https://api.github.com/repos/${owner}/${name}/contents/${path}`;
+            
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching repository contents:', error);
+                throw error;
+            }
+        }
+
+        // Function to display folder contents
+        async function displayFolder(path = '') {
+            // Show loading state
+            explorerContent.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <span>Loading contents...</span>
+                </div>
+            `;
+
+            try {
+                const contents = await fetchRepoContents(path);
+                
+                // Update breadcrumb
+                currentPath.textContent = path || currentRepo.path;
+                
+                // Update repo link
+                repoLink.href = `https://github.com/${currentRepo.owner}/${currentRepo.name}`;
+                repoLink.textContent = `${currentRepo.owner}/${currentRepo.name}`;
+                
+                // Show/hide back button
+                if (path) {
+                    backButton.style.display = 'inline-flex';
+                } else {
+                    backButton.style.display = 'none';
+                }
+                
+                // Clear current content
+                explorerContent.innerHTML = '';
+                
+                // Check if folder is empty
+                if (!contents || contents.length === 0) {
+                    explorerContent.innerHTML = `
+                        <div class="empty-state">
+                            <i class="far fa-folder-open"></i>
+                            <p>This folder is empty</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Separate folders and files
+                const folders = contents.filter(item => item.type === 'dir');
+                const files = contents.filter(item => item.type === 'file');
+                
+                // Display folders first
+                folders.forEach(folder => {
+                    const folderElement = document.createElement('div');
+                    folderElement.className = 'folder';
+                    
+                    folderElement.innerHTML = `
+                        <div><i class="fas fa-folder"></i></div>
+                        <div class="folder-name">${folder.name}</div>
+                        <div class="file-size">-</div>
+                        <div class="file-date">-</div>
+                    `;
+                    
+                    folderElement.addEventListener('click', () => {
+                        navigationHistory.push(path);
+                        displayFolder(path ? `${path}/${folder.name}` : folder.name);
+                    });
+                    
+                    explorerContent.appendChild(folderElement);
+                });
+                
+                // Then display files
+                files.forEach(file => {
+                    const fileElement = document.createElement('div');
+                    fileElement.className = 'file';
+                    
+                    const displayTime = file.name.startsWith('k-') ? convertTimestamp(file.name) : 'Unknown';
+                    const displaySize = formatFileSize(file.size);
+                    
+                    fileElement.innerHTML = `
+                        <div><i class="fas fa-file"></i></div>
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${displaySize}</div>
+                        <div class="file-date">${displayTime}</div>
+                    `;
+                    
+                    // Files could be made clickable to view content
+                    fileElement.addEventListener('click', () => {
+                        window.open(file.html_url, '_blank');
+                    });
+                    
+                    explorerContent.appendChild(fileElement);
+                });
+                
+            } catch (error) {
+                console.error('Error displaying folder:', error);
+                explorerContent.innerHTML = `
+                    <div class="error">
+                        <p><strong>Error loading folder:</strong> ${error.message}</p>
+                        <p>Please check your repository details and try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize the file explorer
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load repository button
+            loadRepoButton.addEventListener('click', () => {
+                const owner = repoOwnerInput.value.trim();
+                const name = repoNameInput.value.trim();
+                const path = repoPathInput.value.trim() || 'data';
+                
+                if (!owner || !name) {
+                    alert('Please enter both repository owner and name');
+                    return;
+                }
+                
+                currentRepo = { owner, name, path };
+                navigationHistory = [];
+                displayFolder('');
+            });
+            
+            // Back button functionality
+            backButton.addEventListener('click', () => {
+                if (navigationHistory.length > 0) {
+                    const previousPath = navigationHistory.pop();
+                    displayFolder(previousPath);
+                }
+            });
+            
+            // Search functionality
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const items = document.querySelectorAll('.folder, .file');
+                
+                items.forEach(item => {
+                    const name = item.querySelector('.folder-name, .file-name').textContent.toLowerCase();
+                    if (name.includes(searchTerm)) {
+                        item.style.display = 'grid';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show empty state if no results
+                const visibleItems = document.querySelectorAll('.folder[style="grid"], .file[style="grid"]');
+                
+                if (visibleItems.length === 0 && searchTerm) {
+                    explorerContent.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <p>No files or folders match your search</p>
+                        </div>
+                    `;
+                } else if (visibleItems.length === 0 && !searchTerm) {
+                    // If search is cleared but no items shown, reload the current folder
+                    const currentPath = document.getElementById('current-path').textContent;
+                    displayFolder(currentPath === 'data' ? '' : currentPath);
+                }
+            });
+            
+            // Allow pressing Enter in repo inputs to load
+            [repoOwnerInput, repoNameInput, repoPathInput].forEach(input => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        loadRepoButton.click();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
