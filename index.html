@@ -209,53 +209,6 @@
             margin-bottom: 20px;
         }
 
-        .config-panel {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .config-panel h3 {
-            margin-bottom: 15px;
-            color: #58a6ff;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #c9d1d9;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 4px;
-            color: #e6edf3;
-        }
-
-        .btn {
-            background: #238636;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-
-        .btn:hover {
-            background: #2ea043;
-        }
-
         /* Scrollbar styling */
         .explorer-content::-webkit-scrollbar {
             width: 8px;
@@ -307,23 +260,6 @@
             </div>
         </header>
 
-        <div class="config-panel">
-            <h3>Repository Configuration</h3>
-            <div class="input-group">
-                <label for="repo-owner">Repository Owner</label>
-                <input type="text" id="repo-owner" placeholder="e.g., octocat">
-            </div>
-            <div class="input-group">
-                <label for="repo-name">Repository Name</label>
-                <input type="text" id="repo-name" placeholder="e.g., Hello-World">
-            </div>
-            <div class="input-group">
-                <label for="repo-path">Path (optional)</label>
-                <input type="text" id="repo-path" placeholder="e.g., data" value="data">
-            </div>
-            <button class="btn" id="load-repo">Load Repository</button>
-        </div>
-
         <div class="breadcrumb">
             <a href="#" id="repo-link">Repository</a>
             <span>/</span>
@@ -343,9 +279,9 @@
                 <div>Date</div>
             </div>
             <div class="explorer-content" id="explorer-content">
-                <div class="empty-state">
-                    <i class="fas fa-code-branch"></i>
-                    <p>Configure repository details and click "Load Repository"</p>
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <span>Loading repository contents...</span>
                 </div>
             </div>
         </div>
@@ -357,19 +293,11 @@
         const currentPath = document.getElementById('current-path');
         const backButton = document.getElementById('back-button');
         const searchInput = document.getElementById('search-input');
-        const repoOwnerInput = document.getElementById('repo-owner');
-        const repoNameInput = document.getElementById('repo-name');
-        const repoPathInput = document.getElementById('repo-path');
-        const loadRepoButton = document.getElementById('load-repo');
         const repoLink = document.getElementById('repo-link');
 
         // State
-        let currentRepo = {
-            owner: '',
-            name: '',
-            path: 'data'
-        };
         let navigationHistory = [];
+        let currentPathValue = 'data';
 
         // Function to convert Unix timestamp to readable time
         function convertTimestamp(filename) {
@@ -380,15 +308,12 @@
             const unixTime = parseInt(match[1]);
             const date = new Date(unixTime * 1000);
             
-            // Format as: YYYY-MM-DD HH:MM:SS
-            const year = date.getFullYear();
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const day = date.getDate().toString().padStart(2, '0');
+            // Format as: HH:MM:SS
             const hours = date.getHours().toString().padStart(2, '0');
             const minutes = date.getMinutes().toString().padStart(2, '0');
             const seconds = date.getSeconds().toString().padStart(2, '0');
             
-            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            return `${hours}:${minutes}:${seconds}`;
         }
 
         // Function to format file size
@@ -400,14 +325,43 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
+        // Function to get current repo info
+        function getCurrentRepoInfo() {
+            // Extract repo info from current URL
+            const pathSegments = window.location.pathname.split('/');
+            if (pathSegments.length >= 3) {
+                return {
+                    owner: pathSegments[1],
+                    name: pathSegments[2]
+                };
+            }
+            
+            // Fallback - try to get from meta tags or guess
+            const metaTags = document.getElementsByTagName('meta');
+            for (let tag of metaTags) {
+                if (tag.getAttribute('property') === 'og:title') {
+                    const content = tag.getAttribute('content');
+                    if (content && content.includes('/')) {
+                        const parts = content.split('/');
+                        return {
+                            owner: parts[0],
+                            name: parts[1]
+                        };
+                    }
+                }
+            }
+            
+            // Final fallback
+            return {
+                owner: 'unknown',
+                name: 'repository'
+            };
+        }
+
         // Function to fetch repository contents from GitHub API
         async function fetchRepoContents(path = '') {
-            const { owner, name } = currentRepo;
-            if (!owner || !name) {
-                throw new Error('Repository owner and name are required');
-            }
-
-            const apiUrl = `https://api.github.com/repos/${owner}/${name}/contents/${path}`;
+            const repoInfo = getCurrentRepoInfo();
+            const apiUrl = `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.name}/contents/${path}`;
             
             try {
                 const response = await fetch(apiUrl);
@@ -435,11 +389,13 @@
                 const contents = await fetchRepoContents(path);
                 
                 // Update breadcrumb
-                currentPath.textContent = path || currentRepo.path;
+                currentPathValue = path || 'data';
+                currentPath.textContent = currentPathValue;
                 
                 // Update repo link
-                repoLink.href = `https://github.com/${currentRepo.owner}/${currentRepo.name}`;
-                repoLink.textContent = `${currentRepo.owner}/${currentRepo.name}`;
+                const repoInfo = getCurrentRepoInfo();
+                repoLink.href = `https://github.com/${repoInfo.owner}/${repoInfo.name}`;
+                repoLink.textContent = `${repoInfo.owner}/${repoInfo.name}`;
                 
                 // Show/hide back button
                 if (path) {
@@ -514,7 +470,7 @@
                 explorerContent.innerHTML = `
                     <div class="error">
                         <p><strong>Error loading folder:</strong> ${error.message}</p>
-                        <p>Please check your repository details and try again.</p>
+                        <p>This viewer only works when hosted on GitHub Pages.</p>
                     </div>
                 `;
             }
@@ -522,21 +478,8 @@
 
         // Initialize the file explorer
         document.addEventListener('DOMContentLoaded', () => {
-            // Load repository button
-            loadRepoButton.addEventListener('click', () => {
-                const owner = repoOwnerInput.value.trim();
-                const name = repoNameInput.value.trim();
-                const path = repoPathInput.value.trim() || 'data';
-                
-                if (!owner || !name) {
-                    alert('Please enter both repository owner and name');
-                    return;
-                }
-                
-                currentRepo = { owner, name, path };
-                navigationHistory = [];
-                displayFolder('');
-            });
+            // Load the data folder by default
+            displayFolder('data');
             
             // Back button functionality
             backButton.addEventListener('click', () => {
@@ -572,18 +515,8 @@
                     `;
                 } else if (visibleItems.length === 0 && !searchTerm) {
                     // If search is cleared but no items shown, reload the current folder
-                    const currentPath = document.getElementById('current-path').textContent;
-                    displayFolder(currentPath === 'data' ? '' : currentPath);
+                    displayFolder(currentPathValue);
                 }
-            });
-            
-            // Allow pressing Enter in repo inputs to load
-            [repoOwnerInput, repoNameInput, repoPathInput].forEach(input => {
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        loadRepoButton.click();
-                    }
-                });
             });
         });
     </script>
