@@ -1,0 +1,6 @@
+fgithub[ENTER]
+/nastenka2[BACKSPACE][ENTER]
+feri[ENTER]
+[RIGHT][BACKSPACE]i2[ENTER]
+[ENTER]
+[F5][F5]
