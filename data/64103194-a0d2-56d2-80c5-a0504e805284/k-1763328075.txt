@@ -1,0 +1,4 @@
+c[STRG]c[STRG]v[ENTER]
+[STRG]c[ENTER]
+[STRG]v[STRG]c[ENTER]
+[STRG]vxmrig^xmrig^xmrig[STRG]c[STRG]c[STRG]vs.^
