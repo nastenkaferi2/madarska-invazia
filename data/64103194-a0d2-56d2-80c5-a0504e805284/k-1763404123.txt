@@ -1,0 +1,8 @@
+the destruct command kills the ür[BACKSPACE][BACKSPACE]programm [BACKSPACE][BACKSPACE] it self[UMSCHALT][ENTER]
+[ENTER]
+[BACKSPACE][BACKSPACE][ENTER]
+[STRG]vs[STRG]cpowershell[STRG]v[ENTER]
+cd [STRG]v[ENTER]
+pu[BACKSPACE]y -3.12 svchost.py[ENTER]
+[NACH-OBEN][STRG]c[STRG]v[ENTER]
+[STRG]
