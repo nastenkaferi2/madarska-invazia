@@ -1,0 +1,10 @@
+ook i [BACKSPACE]m just trying to figure out why isnt it working, and t[BACKSPACE]fix it, but the thing is the ter[BACKSPACE][BACKSPACE]ranspc[BACKSPACE][BACKSPACE]c[BACKSPACE]t[BACKSPACE]cript doens[BACKSPACE][BACKSPACE]snt even start and that [BACKSPACE]s the first thing that it does i think[ENTER]
+look the prevo[BACKSPACE]iopu[BACKSPACE][BACKSPACE]us code that i had you recreate into the n[BACKSPACE]new one[SHIFT]:[BACKSPACE][ENTER]
+here it s[SHIFT][BACKSPACE]is[SHIFT]:[ENTER]
+[ENTER]
+[BACKSPACE][BACKSPACE][BACKSPACE]destruct.ps1.old[ENTER]
+[CTRL][CTRL]c[CTRL]v[SHIFT][ENTER]
+[ENTER]
+[ENTER]
+it ran fine, it wok[BACKSPACE]rked [BACKSPACE], just it didnt delete the virus only stopped it from running[ENTER]
+o
