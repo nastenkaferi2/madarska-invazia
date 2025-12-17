@@ -1,1 +1,0 @@
-a[CTRL][SHIFT][ESC]
