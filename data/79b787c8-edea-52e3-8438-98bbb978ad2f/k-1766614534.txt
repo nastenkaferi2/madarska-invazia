@@ -1,0 +1,1 @@
+t[CTRL]tt[ESC][ESC]s
